@@ -120,11 +120,10 @@ function turn($turn)
         $game->makeTurn($turn);
     } catch (ChessException $e) {
         http_response_code(400);
-        echo json_encode($e->getMessage());
+        echo json_encode((object) Array('error' => $e->getMessage()));
         return;
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode('An error occurred on server side.');
         return;
     }
 

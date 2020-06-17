@@ -19,6 +19,14 @@ class ChessGame
 
     private $blackKing;
 
+    private static $symbol2PieceName = Array(
+        'P' => 'pawn',
+        'K' => 'king',
+        'Q' => 'queen',
+        'R' => 'rook',
+        'N' => 'knight',
+        'B' => 'bishop');
+
     public static function newGame()
     {
         $game = new self();
@@ -44,12 +52,23 @@ class ChessGame
         $turn = self::fromChessNotation($turnDescription);
         $from = $this->board->get($turn->fromX, $turn->fromY);
 
-        if (!$from || $from->isWhite() !== $this->isWhiteTurn)
-        {
+        if (!$from) {
+            throw new ChessException("There is no piece on $turn->fromStr");
+        }
+
+        if ($from->str() !== $turn->fromPiece) {
+            $name = self::$symbol2PieceName[$turn->fromPiece];
+            throw new ChessException("There is no $name on $turn->fromStr");
+        }
+
+        if ($from->isWhite() !== $this->isWhiteTurn) {
+            throw new ChessException("The order of turn is violated");
+        }
+
+        if (!$from->validateTurn($turn->toX, $turn->toY, $this->board)) {
             throw new ChessException("Invalid turn");
         }
 
-        $from->validateTurn($turn->toX, $turn->toY, $this->board);
         $to = $this->board->get($turn->toX, $turn->toY);
         $nullPiece = null;
 
@@ -60,15 +79,13 @@ class ChessGame
         {
             $this->board->set($turn->fromX, $turn->fromY, $from);
             $this->board->set($turn->toX, $turn->toY, $to);
-            throw new ChessException("Your king is under attack after this turn($turnDescription");
+            throw new ChessException("Your king will be under attack");
         }
 
-        if ($this->opponentKing()->isUnderAttack($this->board))
-        {
+        if ($this->opponentKing()->isUnderAttack($this->board)) {
             $this->isCheck = true;
 
-            if (!$this->opponentKing()->canGoSomewhere($this->board))
-            {
+            if (!$this->opponentKing()->canGoSomewhere($this->board)) {
                 $this->isActive = false;
             }
         }
@@ -77,13 +94,25 @@ class ChessGame
     }
 
 
-    //example: e2-e4.
+    //examples: e2-e4, Ng1-f3
     private static function fromChessNotation(string $turnDescription): ChessTurn
     {
+        $pieceSymbols = array('K', 'Q', 'R', 'N', 'B');
         $spl = explode("-", $turnDescription);
-        if (count($spl) !== 2 || strlen($spl[0]) !== 2 || strlen($spl[1]) !== 2)
-        {
+        if (count($spl) !== 2 || (strlen($spl[0]) !== 3 && strlen($spl[0]) !== 2) || strlen($spl[1]) !== 2) {
             throw new ChessException("Invalid turn description");
+        }
+
+        $p = null;
+        if (strlen($spl[0]) === 3) {
+             $p = $spl[0][0];;
+            if (in_array($p, $pieceSymbols)) {
+                $spl[0] = substr($spl[0], 1);
+            } else {
+                throw new ChessException('Invalid piece symbol');
+            }
+        } else {
+            $p = 'P';
         }
 
         $yFrom = ord(strtoupper($spl[0])) - 65;
@@ -92,7 +121,11 @@ class ChessGame
         $yTo = ord(strtoupper($spl[1])) - 65;
         $xTo = 8 - (int)$spl[1][1];
 
-        return new ChessTurn($xFrom, $yFrom, $xTo, $yTo);
+        $res = new ChessTurn($xFrom, $yFrom, $xTo, $yTo);
+        $res->fromStr = $spl[0];
+        $res->toStr = $spl[1];
+        $res->fromPiece = $p;
+        return $res;
     }
 
     private function currentPlayerKing()
@@ -105,16 +138,11 @@ class ChessGame
         return $this->isWhiteTurn ? $this->blackKing : $this->whiteKing;
     }
 
-    public function printBoard()
-    {
-        $this->board->print();
-    }
 
     public function isWhiteTurn(): bool
     {
         return $this->isWhiteTurn;
     }
-
 
     public function isCheck(): bool
     {
@@ -185,11 +213,10 @@ class ChessGame
 
     public function getJson($withBoard)
     {
-        $gameView = Array('white_turn' => $this->isWhiteTurn,
+        $gameView = array('white_turn' => $this->isWhiteTurn,
             'check' => $this->isCheck, 'active' => $this->isActive);
 
-        if ($withBoard)
-        {
+        if ($withBoard) {
             $gameView['board'] = $this->board->getJson();
         }
 

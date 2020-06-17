@@ -4,18 +4,16 @@
 class Pawn extends AbstractChessPiece
 {
     private $startX;
-    private $startY;
 
     public function __construct($x, $y, $color)
     {
         parent::__construct($x, $y, $color);
-        $this->startX = $x;
-        $this->startY = $y;
+        $this->startX = $color === 1 ? 1 : 6;
     }
 
     private function positionChanged()
     {
-        return ($this->x !== $this->startX || $this->y !== $this->startY);
+        return ($this->x !== $this->startX);
     }
 
     public function getDx()

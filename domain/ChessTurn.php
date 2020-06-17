@@ -11,6 +11,12 @@ class ChessTurn
 
     public int $toY;
 
+    public string $fromStr;
+
+    public string $toStr;
+
+    public string $fromPiece;
+
     public function __construct(int $fromX, int $fromY, int $toX, int $toY)
     {
         $this->fromX = $fromX;
