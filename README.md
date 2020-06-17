@@ -7,7 +7,7 @@
 
 ## Api
 * `POST /game/start` - starts new game
-* `POST /game/turn?turn=e2-e4` - make turn
+* `POST /game/turn?turn=Ng1-f3` - make turn. Turn description must be similar to [long algebraic notation](https://en.wikipedia.org/wiki/Chess_notation). Small difference: even when attacking opponent's piece put `-`, not `x` between cells.
 * `GET /game/status` -  `JSON` info about the current state of game. Example: 
 ```
 {
