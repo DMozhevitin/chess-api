@@ -2,6 +2,7 @@
 * clone this repository
 * open it with *PhpStorm*
 * set up your `mysql` database settings in *Database.php*
+* run `scripts/create_tables.sql` script
 * create `PHP Built-in Web Server` run configuration.
 * run it with *PhpStorm*
 
@@ -14,6 +15,7 @@
     "white_turn": true,
     "check": false,
     "active": true,
+    "winner": "white",
     "board": [
         [
             {
