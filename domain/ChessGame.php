@@ -19,6 +19,7 @@ class ChessGame
 
     private $blackKing;
 
+
     private static $symbol2PieceName = Array(
         'P' => 'pawn',
         'K' => 'king',
@@ -51,6 +52,10 @@ class ChessGame
     {
         $turn = self::fromChessNotation($turnDescription);
         $from = $this->board->get($turn->fromX, $turn->fromY);
+
+        if (!$this->isActive) {
+            throw new ChessException("The game is finished");
+        }
 
         if (!$from) {
             throw new ChessException("There is no piece on $turn->fromStr");
@@ -213,8 +218,10 @@ class ChessGame
 
     public function getJson($withBoard)
     {
+        $w = $this->isActive ? null : ($this->isWhiteTurn ? 'black' : 'white');
         $gameView = array('white_turn' => $this->isWhiteTurn,
-            'check' => $this->isCheck, 'active' => $this->isActive);
+            'check' => $this->isCheck, 'active' => $this->isActive,
+            'winner' => $w);
 
         if ($withBoard) {
             $gameView['board'] = $this->board->getJson();
